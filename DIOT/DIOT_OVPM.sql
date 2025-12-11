@@ -1,57 +1,54 @@
 SELECT 
-    -- Proveedor
-    OCRD."CardCode" AS "Nombre",
+    -- PROVEEDOR
+    OCRD."CardCode" AS "Proveedor",
+    OCRD."CardName" AS "Nombre",
     OCRD."LicTradNum" AS "RFC",
     
+    -- FACTURA
     OPCH."DocNum" AS "No Factura",
+    OPCH."DocDate" AS "Fecha Factura",
     
-    CASE 
-        WHEN PCH1."TaxCode" = 'V2' THEN
-            TO_DECIMAL(PCH1."LineTotal" * 0.16, 18, 4)
-        WHEN PCH1."TaxCode" = 'V1' THEN
-            TO_DECIMAL(PCH1."LineTotal" * 0.8, 18, 4)
-        WHEN PCH1."TaxCode" = 'V0' THEN
-            TO_DECIMAL(PCH1."LineTotal" * 0, 18, 4)
-        WHEN PCH1."TaxCode" = 'VE' THEN
-            TO_DECIMAL(PCH1."LineTotal" * 0, 18, 4)
-    END AS "IVA",
+    -- LINEAS
+    PCH1."LineNum",
+    PCH1."ItemCode",
+    PCH1."Dscription",
+    PCH1."LineTotal" AS "Subtotal",
+    PCH1."VatSum" AS "IVA",
+    PCH1."VatPrcnt" AS "Tasa IVA",
 
-    CASE 
-        WHEN PCH1."TaxCode" = 'V2' THEN '16%'
-        WHEN PCH1."TaxCode" = 'V1' THEN '8%'
-        WHEN PCH1."TaxCode" = 'V0' THEN '0%'
-        WHEN PCH1."TaxCode" = 'VE' THEN 'Exento'
-    END AS "TASA",
-
-    -- Retencion
+    -- RETENCIONES
     PCH5."WTAmnt" AS "Retencion",
     OWHT."WTName" AS "Tipo Retencion",
-    
-    TO_DATE(OVPM."DocDate") AS "Fecha Pago",
-    OVPM."DocNum" AS "No Pago"
 
--- Pago efectuado
-FROM OVPM  
+    -- PAGO
+    OVPM."DocNum" AS "No Pago",
+    OVPM."DocDate" AS "Fecha Pago",
+    
+    CASE 
+        WHEN OVPM."Canceled" = 'Y' THEN 'Cancelado'
+        ELSE ''
+    END AS "Estado"
+
+
+FROM OVPM
+    
+    -- DOCUMENTOS RELACIONADOS AL PAGO
     INNER JOIN VPM2 ON OVPM."DocEntry" = VPM2."DocNum"
 
-    -- Factura Proveedor
-    LEFT JOIN OPCH ON VPM2."DocEntry" = OPCH."DocNum"
+    -- FACTURA PROVEEDOR SEGÚN EL DOCENTRY
+    INNER JOIN OPCH ON VPM2."DocEntry" = OPCH."DocEntry"
 
-    -- Lineas de factura
+    -- LINEAS DE LA FACTURA
     INNER JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
 
-    -- Tipos de Retenciones
-    LEFT JOIN PCH5
-        ON OPCH."DocEntry" = PCH5."AbsEntry"
+    -- RETENCIONES DE LA FACTURA
+    LEFT JOIN PCH5 ON OPCH."DocEntry" = PCH5."AbsEntry"
 
-    -- Retenciones
-    LEFT JOIN OWHT
-        ON PCH5."WTCode" = OWHT."WTCode"
+    -- DESCRIPCIÓN DE RETENCIONES
+    LEFT JOIN OWHT ON PCH5."WTCode" = OWHT."WTCode"
 
-    -- Proveedor
+    -- PROVEEDOR
     INNER JOIN OCRD ON OPCH."CardCode" = OCRD."CardCode"
 
-WHERE
-    OVPM."Canceled" = 'N'
-
-ORDER BY OPCH."DocNum" DESC
+ORDER BY 
+    OVPM."DocDate" DESC

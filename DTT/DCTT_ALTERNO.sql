@@ -26,7 +26,7 @@
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
         
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -65,7 +65,7 @@ UNION ALL
         INNER JOIN JDT1 ON OJDT."TransId" = JDT1."TransId"
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
     WHERE
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -104,7 +104,7 @@ UNION ALL
         INNER JOIN JDT1 ON OJDT."TransId" = JDT1."TransId"
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
     WHERE
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -147,7 +147,7 @@ UNION ALL
         LEFT JOIN OPCH ON OJDT."BaseRef" = OPCH."DocNum"
 
     WHERE 
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -211,14 +211,12 @@ UNION ALL
             WHERE rn = 1
         ) AS JDTX
             ON JDTX."TransId" = OJDT."TransId"
-
     WHERE
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
 )
 
-
-
 UNION ALL
+
 (
     -- TODOS LOS OTROS DOCUMENTOS NO FACTURAS
     SELECT
@@ -306,7 +304,7 @@ UNION ALL
         LEFT JOIN ODPO ON OJDT."BaseRef" = ODPO."DocNum" -- TransType 204, Factura anticipo de proveedores
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-11-01' AND '2025-11-30'
+        OJDT."RefDate" BETWEEN '2025-09-01' AND '2025-09-30'
 
         -- Excluimos las facturas de proveedor
         AND OJDT."TransType" <> 18
