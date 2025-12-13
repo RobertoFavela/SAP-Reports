@@ -1,8 +1,3 @@
-/*
-==============================================================================================
-                        REPORTE DE COMPRAS DE FACTURA DE PROVEEDOR
-==============================================================================================
-*/
 SELECT
     -- Datos de la factura de proveedor
     TO_DATE(OPCH."DocDate") AS "Fecha de contabilizacion",

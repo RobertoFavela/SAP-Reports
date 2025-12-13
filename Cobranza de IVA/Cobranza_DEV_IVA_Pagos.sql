@@ -1,9 +1,3 @@
-/*
-==============================================================================================
-      REPORTE DE COBRANZA DEV IVA A PARTIR DE LOS DOCUMENTOS DE PAGOS RECIBIDOS
-==============================================================================================
-*/
-
 -- Calculo del tipo de cambio 
 WITH tc_calculo AS (
     SELECT

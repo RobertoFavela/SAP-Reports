@@ -1,9 +1,3 @@
-/*
-==============================================================================================
-            REPORTE DE ENTREGAS POR SUCURSAL A PARTIR DE DOCUMENTOS DE FACTURAS
-==============================================================================================
-*/
-
 SELECT
     -- Referencia de entrega
     T1."DocEntry" AS "ID Interno Documento",

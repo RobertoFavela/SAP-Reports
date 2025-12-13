@@ -1,8 +1,3 @@
-/*
-==============================================================================================
-                REPORTE DE ENTRADAS DE MERCANCIA CON PRECIO DE ENTREGA
-==============================================================================================
-*/
 SELECT   
     -- Datos de la factura de proveedor
     TO_DATE(OPCH."DocDate") AS "Fecha de contabilizacion",

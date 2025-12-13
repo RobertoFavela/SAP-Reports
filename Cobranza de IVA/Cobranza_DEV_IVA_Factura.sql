@@ -1,9 +1,3 @@
-/*
-==============================================================================================
-            REPORTE DE COBRANZA DEV IVA A PARTIR DE LOS DOCUMENTOS DE FACTURAS
-==============================================================================================
-*/
-
 SELECT
     -- Poliza
     TO_DATE (ORCT."DocDate") AS "Fecha Poliza",
