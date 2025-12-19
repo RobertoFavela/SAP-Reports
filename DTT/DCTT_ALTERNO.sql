@@ -2,7 +2,7 @@
     -- Traemos unicamente las lineas con JDT1."SourceLine" = 1, indican el proveedor
 (
     SELECT
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -42,7 +42,7 @@ UNION ALL
 (
     SELECT
         -- 'Anticipos' As "Consulta",
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -82,7 +82,7 @@ UNION ALL
 (
     SELECT
         -- 'IVA' As "Consulta",
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -122,7 +122,7 @@ UNION ALL
 (
     SELECT
         -- 'Perdida cambiaria' AS "Consulta",
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -163,7 +163,7 @@ UNION ALL
 (
     SELECT
         -- 'Factura' As "Consulta",
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -226,7 +226,7 @@ UNION ALL
     -- TODOS LOS OTROS DOCUMENTOS NO FACTURAS
 (
     SELECT
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -322,7 +322,7 @@ UNION ALL
 
 (
     SELECT
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId"        AS "Asiento ID",
         OJDT."Number"         AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -362,7 +362,7 @@ UNION ALL
 
 (
     SELECT
-        'LOMA' AS "Empresa",
+        'SRY' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
