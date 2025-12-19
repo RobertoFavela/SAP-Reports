@@ -1,8 +1,8 @@
-(
     -- LINEAS DE PROVEEDOR DE FACTURA
     -- Traemos unicamente las lineas con JDT1."SourceLine" = 1, indican el proveedor
+(
     SELECT
-        -- 'Proveedor' As "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -37,11 +37,12 @@
 
 UNION ALL
 
-(
     -- LINEAS DE ANTICIPOS DE FACTURAS
     -- Traemos unicamente las lineas con JDT1."SourceLine" = -4, indican un anticipo
+(
     SELECT
         -- 'Anticipos' As "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -76,11 +77,12 @@ UNION ALL
 
 UNION ALL
 
-(
     -- LINEAS DE IVA DE FACTURAS
     -- Traemos unicamente las lineas con JDT1."InterimTyp" = 5, indican impuestos
+(
     SELECT
         -- 'IVA' As "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -116,10 +118,11 @@ UNION ALL
 
 UNION ALL
 
-(
     -- PERDIDAS CAMBIARIAS DE FACTURAS
+(
     SELECT
         -- 'Perdida cambiaria' AS "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -155,11 +158,12 @@ UNION ALL
 
 UNION ALL
 
-(
     -- LINEAS DE FACTURAS
     -- Traemos todos los detalles de las lineas de la factura original del asiento
+(
     SELECT
         -- 'Factura' As "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -217,10 +221,10 @@ UNION ALL
 
 UNION ALL
 
-(
     -- TODOS LOS OTROS DOCUMENTOS NO FACTURAS
+(
     SELECT
-        -- 'Completa' AS "Consulta",
+        'LOMA' AS "Empresa",
         OJDT."TransId" AS "Asiento ID",
         OJDT."Number" AS "Asiento",
         TO_DATE(OJDT."RefDate") AS "Fecha",
@@ -307,7 +311,88 @@ UNION ALL
         OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
 
         -- Excluimos las facturas de proveedor
-        AND OJDT."TransType" <> 18
+        AND OJDT."TransType" NOT IN (18, 60)
 )
+
+UNION ALL
+
+(
+    SELECT
+        'LOMA' AS "Empresa",
+        OJDT."TransId"        AS "Asiento ID",
+        OJDT."Number"         AS "Asiento",
+        TO_DATE(OJDT."RefDate") AS "Fecha",
+        OJDT."TransType",
+
+        OIGE."DocEntry"       AS "Documento ID",
+        OIGE."DocNum"         AS "Documento Origen",
+
+        IGE1."AcctCode"       AS "Cuenta",
+        TO_DECIMAL(IGE1."StockPrice" * IGE1."Quantity", 18, 4)
+                               AS "Debito del asiento",
+        0 AS "Credito del asiento",
+
+        IGE1."OcrCode"        AS "Negocio",
+        IGE1."OcrCode2"       AS "Sucursal",
+        IGE1."OcrCode3"       AS "Area",
+        IGE1."OcrCode4"       AS "Ciclo",
+        IGE1."OcrCode5"       AS "Equipos",
+        IGE1."Project"        AS "Proyecto",
+
+        OIGE."Comments"       AS "Comentarios"
+
+    FROM
+        OIGE
+        INNER JOIN IGE1
+            ON OIGE."DocEntry" = IGE1."DocEntry"
+
+        INNER JOIN OJDT
+            ON OJDT."BaseRef" = OIGE."DocNum"
+           AND OJDT."TransType" = 60
+
+    WHERE
+        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+)
+
+UNION ALL
+
+(
+    SELECT
+        'LOMA' AS "Empresa",
+        OJDT."TransId" AS "Asiento ID",
+        OJDT."Number" AS "Asiento",
+        TO_DATE(OJDT."RefDate") AS "Fecha",
+        OJDT."TransType",
+
+        OIGE."DocEntry" AS "Documento ID",
+        OIGE."DocNum" AS "Documento Origen",
+
+        JDT1."Account" AS "Cuenta",
+        JDT1."Debit" AS "Debito del asiento",
+        JDT1."Credit" AS "Credito del asiento",
+
+        JDT1."ProfitCode" AS "Negocio",
+        JDT1."OcrCode2" AS "Sucursal",
+        JDT1."OcrCode3" AS "Area",
+        JDT1."OcrCode4" AS "Ciclo",
+        JDT1."OcrCode5" AS "Equipos",
+        JDT1."Project" AS "Proyecto",
+
+        OIGE."Comments" AS "Comentarios"
+
+    FROM
+        JDT1
+        INNER JOIN OJDT
+            ON OJDT."TransId" = JDT1."TransId"
+
+        LEFT JOIN OIGE
+            ON OJDT."BaseRef" = OIGE."DocNum"
+
+    WHERE
+        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        AND OJDT."TransType" = 60
+        AND JDT1."Credit" <> 0
+)
+
 
 ORDER BY "Asiento" DESC
