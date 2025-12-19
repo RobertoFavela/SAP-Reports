@@ -11,8 +11,8 @@
         OPCH."DocNum" AS "Documento Origen",
         JDT1."Account" AS "Cuenta",
         
-        JDT1."Debit" AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
 
         jdt1."ProfitCode" as "Negocio",
         jdt1."OcrCode2" as "Sucursal",
@@ -51,8 +51,8 @@ UNION ALL
         OPCH."DocNum" AS "Documento Origen",
         JDT1."Account" AS "Cuenta",
         
-        JDT1."Debit" AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
 
         jdt1."ProfitCode" as "Negocio",
         jdt1."OcrCode2" as "Sucursal",
@@ -91,8 +91,8 @@ UNION ALL
         OPCH."DocNum" AS "Documento Origen",
         JDT1."Account" AS "Cuenta",
         
-        JDT1."Debit" AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
 
         jdt1."ProfitCode" as "Negocio",
         jdt1."OcrCode2" as "Sucursal",
@@ -131,8 +131,8 @@ UNION ALL
         OPCH."DocNum" AS "Documento Origen",
         JDT1."Account" AS "Cuenta",
 
-        JDT1."Debit"  AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
 
         JDT1."ProfitCode" AS "Negocio",
         JDT1."OcrCode2"   AS "Sucursal",
@@ -174,10 +174,12 @@ UNION ALL
 
         CASE
             WHEN JDTX."Debit" = 0 THEN PCH1."LineTotal"
+            ELSE 0
         END AS "Credito del asiento",
 
         CASE
             WHEN JDTX."Credit" = 0 THEN PCH1."LineTotal"
+            ELSE 0
         END AS "Debito del asiento",
 
         PCH1."OcrCode"  AS "Negocio",
@@ -263,8 +265,10 @@ UNION ALL
         ) AS "Documento Origen",
 
         JDT1."Account" AS "Cuenta",
-        JDT1."Debit" AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
+
         JDT1."ProfitCode" AS "Negocio",
         JDT1."OcrCode2" AS "Sucursal",
         JDT1."OcrCode3" AS "Area",
@@ -368,8 +372,9 @@ UNION ALL
         OIGE."DocNum" AS "Documento Origen",
 
         JDT1."Account" AS "Cuenta",
-        JDT1."Debit" AS "Debito del asiento",
-        JDT1."Credit" AS "Credito del asiento",
+        
+        COALESCE(JDT1."Debit", 0)  AS "Debito del asiento",
+        COALESCE(JDT1."Credit", 0) AS "Credito del asiento",
 
         JDT1."ProfitCode" AS "Negocio",
         JDT1."OcrCode2" AS "Sucursal",
