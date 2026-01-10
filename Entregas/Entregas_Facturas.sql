@@ -1,11 +1,18 @@
 SELECT
+    -- Facturas
     OINV."DocEntry" AS "ID Factura",
-    COALESCE(OINV."DocNum", DLN21."RefDocNum") AS "No. Factura",
+    OINV."DocNum" AS "No Factura",
+
+    -- Entregas
     ODLN."DocEntry" AS "ID Entrega",
-    ODLN."DocNum" AS "Entrega",
-    DLN1."ItemCode" AS "Articulo",
-    DLN1."Dscription" AS "Descripcion",
-    -- KGS Facturados (cliente C00131: Libras a kilos - articulo VA24PUPV68: 200gr)
+    ODLN."DocNum" AS "No Entrega",
+
+    -- Articulos
+    INV1."ItemCode" AS "No. de Artículo",
+    INV1."Dscription" AS "Descripción Artículo/Servicio",
+
+    -- KGS Facturados (cliente C00131: libras a kilos - articulo VA24PUPV68: 200gr)
+    -- convertido a decimal con 6 decimales
     TO_DECIMAL (
         CASE
             WHEN DLN1."BaseCard" = 'C00131'
@@ -16,9 +23,12 @@ SELECT
         18,
         4
     ) AS "KGS Facturados",
-    DLN1."Quantity" AS "KGS Entrega",
+    
+    DLN1."Quantity" AS "KGS Entregados",
     RIN1."Quantity" AS "KGS Crédito",
+    
     -- Diferencia (cliente C00131: libras a kilos - articulo VA24PUPV68: 200gr)
+    -- convertido a decimal con 6 decimales
     TO_DECIMAL (
         (
             CASE
@@ -31,31 +41,35 @@ SELECT
         18,
         4
     ) AS "Diferencia",
-    TO_DATE (DLN1."ShipDate") AS "Fecha Entrega",
+
+    -- Fechas
+    TO_DATE (ODLN."DocDate") AS "Fecha Entrega",
     TO_DATE (OINV."DocDate") AS "Fecha Factura",
-    DLN1."WhsCode" AS "Almacen",
+
+    DLN1."WhsCode" AS "Código de Almacén",
+    DLN1."DocDate" AS "Fecha Contabilización",
     DLN1."BaseCard" AS "Código Base SN",
     DLN1."OcrCode" AS "Norma de Reparto",
     DLN1."VatGroup" AS "Definición del Impuesto",
-    DLN1."BaseAtCard" AS "Documento Base",
+    DLN1."BaseDocNum" AS "Documento Base",
     DLN1."FinncPriod" AS "Período Contable",
     DLN1."ObjType" AS "Tipo de Objeto",
     DLN1."unitMsr" AS "Unidad",
     DLN1."StockSum",
+
+    -- Costo del Artículo
     TO_DECIMAL (DLN1."StockPrice", 18, 4) AS "Costo del Artículo",
     
     -- Ingreso
     TO_DECIMAL (INV1."GTotal", 18, 6) AS "Ingreso",
     
-    -- Costo de venta 
-    -- (Cantidad * Precio de stock)
+    -- Costo de venta (Cantidad * Precio de stock)
     TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6) AS "Costo Venta",
     
     -- Importe Nota Crédito
     TO_DECIMAL (RIN1."Quantity", 18, 6) * TO_DECIMAL (RIN1."Price", 18, 6) + TO_DECIMAL (RIN1."VatSum", 18, 6) AS "Importe Nota Crédito",
     
-    -- Utilidad
-    -- (Ingreso - Costo de venta - Importe nota de credito) 
+    -- Utilidad (Ingreso - Costo de venta - Importe nota de credito)
     TO_DECIMAL (INV1."GTotal", 18, 6) - COALESCE(
         TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6),
         0
@@ -64,72 +78,56 @@ SELECT
         0
     ) AS "Utilidad",
 
+    DLN1."LineStatus",
+    DLN1."BaseType",
+    DLN1."BaseEntry",
+    DLN1."BaseAtCard",
     DLN1."CogsOcrCod",
+
     -- Sucursales
-    DLN1."OcrCode2" AS "Sucursal",
+    DLN1."OcrCode2",
     DLN1."OcrCode3",
+    
     -- Ciclos
-    DLN1."OcrCode4" AS "Ciclo",
+    DLN1."OcrCode4",
     DLN1."OcrCode5",
     DLN1."U_SBO_MARCA",
     DLN1."U_SBO_PRESENTACION",
     DLN1."U_SBO_CICLO",
     DLN1."U_SBO_CALIDAD"
+    
+-- Lineas de Facturas
+FROM INV1
+    -- Cabeceras de Facturas
+    INNER JOIN OINV ON OINV."DocEntry" = INV1."DocEntry"
 
--- Entregas lineas
-FROM DLN1
-    -- Entregas Cabecera
-    INNER JOIN ODLN ON DLN1."DocEntry" = ODLN."DocEntry"
-    
-    -- Relación opcional con factura
-    LEFT JOIN INV1 ON DLN1."BaseEntry" = INV1."DocEntry"
-    AND DLN1."BaseLine" = INV1."LineNum"
-    AND DLN1."BaseType" = 13
-    
-    -- Cabecera factura, si aplica
-    LEFT JOIN OINV ON INV1."DocEntry" = OINV."DocEntry"
-    
-    -- Líneas de notas de crédito
+    -- Lineas de Entregas
+    LEFT JOIN DLN1 ON DLN1."BaseEntry" = OINV."DocEntry"
+        AND DLN1."BaseLine" = INV1."LineNum"
+        AND DLN1."BaseType" = 13
+
+    -- Cabeceras de Entregas
+    LEFT JOIN ODLN ON ODLN."DocEntry" = DLN1."DocEntry"
+
+    -- Lineas de Notas de Crédito
     LEFT JOIN RIN1 ON RIN1."BaseEntry" = OINV."DocEntry"
-    AND RIN1."BaseLine" = INV1."LineNum"
-    AND RIN1."BaseType" = 13
-    
-    -- Cabecera de nota de crédito
+        AND RIN1."BaseLine" = INV1."LineNum"
+        AND RIN1."BaseType" = 13
+
+    -- Cabeceras de Notas de Crédito
     LEFT JOIN ORIN ON ORIN."DocEntry" = RIN1."DocEntry"
-    
-    -- Maestro artículos
-    LEFT JOIN OITM ON OITM."ItemCode" = DLN1."ItemCode"
-    
-    -- Grupo artículos
-    LEFT JOIN OITB ON OITB."ItmsGrpCod" = OITM."ItmsGrpCod"
-    /*
-    LEFT JOIN DLN21 DLNREF ON DLNREF."DocEntry" = DLN1."DocEntry"
-    
-    -- Referencia a base
-    AND DLNREF."LineNum" = DLN1."LineNum"
-    AND DLNREF."RefObjType" = '13'
-*/
-    LEFT JOIN DLN21 ON DLN21."DocEntry" = DLN1."DocEntry"
 
--- Filtros
+    -- Maestro de artículos
+    JOIN OITM ON OITM."ItemCode" = INV1."ItemCode"
+    
+    -- Grupos de artículos
+    JOIN OITB ON OITB."ItmsGrpCod" = OITM."ItmsGrpCod"
+
 WHERE
-    -- Solo entregas no canceladas
-    ODLN."CANCELED" = 'N'
-
-    AND ODLN."DocNum" = '3730'
-    
-    -- Solo entregas de camaron frizado
+    OINV."CANCELED" = 'N'
     AND OITB."ItmsGrpNam" = 'PT CAMARON FRIZADO'
-    
-    -- FILTRO DE SUCURSAL
-    -- Colocar "--" antes de la linea para mostrar todas
-    -- AND DLN1."OcrCode2" = 'S0502'
-    
-    -- FILTRO DE CICLO
-    -- Colocar "--" antes de la linea para mostrar todos
-    -- AND DLN1."OcrCode4" = 'C0005'
-    
-    -- Filtro de fechas
-    AND DLN1."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
 
+    AND OINV."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
 
+ORDER BY
+    OINV."DocNum" DESC
