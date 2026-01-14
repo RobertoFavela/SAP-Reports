@@ -23,9 +23,19 @@ SELECT
     ODPO."DocEntry" AS "ID Anticipo",
     ODPO."DocNum" AS "No Anticipo",
     OPCH."U_UDF_UUID"
+
+-- Facturas
 FROM OPCH
+    -- Lineas de Facturas
     INNER JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
+    
+    -- Anticipos de Factura
     INNER JOIN PCH11 ON OPCH."DocEntry" = PCH11."DocEntry"
+    
+    -- Anticipos
     LEFT JOIN ODPO ON PCH11."BaseAbs" = ODPO."DocEntry"
+    -- Lineas de Anticipos
     LEFT JOIN DPO1 ON ODPO."DocEntry" = DPO1."DocEntry"
-ORDER BY OPCH."DocNum" DESC
+
+ORDER BY 
+    OPCH."DocNum" DESC

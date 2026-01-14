@@ -11,6 +11,7 @@ SELECT
     -- LINEAS
     PCH1."LineNum",
     PCH1."ItemCode",
+    OITM."ItmsGrpCod", 
     PCH1."Dscription",
     PCH1."LineTotal" AS "Subtotal",
     PCH1."VatSum" AS "IVA",
@@ -46,6 +47,10 @@ FROM OVPM
 
     -- DESCRIPCIÓN DE RETENCIONES
     LEFT JOIN OWHT ON PCH5."WTCode" = OWHT."WTCode"
+
+    LEFT JOIN OITM ON PCH1."ItemCode" = OITM."ItemCode"
+
+    LEFT JOIN OITB ON OITM."ItmsGrpCod" = OITB."ItmsGrpCod"
 
     -- PROVEEDOR
     INNER JOIN OCRD ON OPCH."CardCode" = OCRD."CardCode"

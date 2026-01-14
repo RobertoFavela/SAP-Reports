@@ -27,6 +27,16 @@ SELECT
         ELSE 0
     END AS "Cajas",
 
+    
+    CASE
+        WHEN OINV."DocCur" = 'MXP' THEN
+            INV1."Price"
+        WHEN OINV."DocCur" = 'USD' THEN
+            TO_DECIMAL((INV1."Price" * ORTT."Rate"), 18, 4)
+        ELSE 0
+    END AS "Precio Unitario MXP",
+    INV1."LineTotal" AS "Precio Total MXP",
+
     -- Totales
     OINV."DocTotal" AS "Total MXP",
     TO_DECIMAL(OINV."DocTotal" * ORTT."Rate", 18, 4) AS "Total USD",
@@ -48,12 +58,13 @@ WHERE
     -- Solo Facturas no canceladas
     OINV."CANCELED" = 'N'
 
-    -- AND OINV."DocNum" = '4125'
+    AND OINV."DocNum" = '4125'
 
     -- Solo traemos articulos de camaron frizado
     AND OITB."ItmsGrpNam" = 'PT CAMARON FRIZADO'
 
     -- Filtro de fechas
-    AND OINV."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
+    -- AND OINV."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
 
-ORDER BY OINV."DocNum" DESC
+ORDER BY 
+    OINV."DocNum" DESC

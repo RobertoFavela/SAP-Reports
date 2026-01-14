@@ -35,3 +35,7 @@ LEFT JOIN DPO1 ON POR1."ObjType" = DPO1."BaseType"
 
 -- Factura anticipo
 LEFT JOIN ODPO ON DPO1."DocEntry" = ODPO."DocEntry"
+
+-- Tipo de cambio
+LEFT JOIN ORTT ON ORTT."RateDate" = OPOR."DocDate"
+        AND ORTT."Currency" = 'USD'
