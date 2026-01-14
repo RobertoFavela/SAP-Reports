@@ -32,14 +32,14 @@ SELECT
         WHEN OINV."DocCur" = 'MXP' THEN
             INV1."Price"
         WHEN OINV."DocCur" = 'USD' THEN
-            TO_DECIMAL((INV1."Price" * ORTT."Rate"), 18, 4)
+            TO_DECIMAL((INV1."Price" / ORTT."Rate"), 18, 4)
         ELSE 0
     END AS "Precio Unitario MXP",
     INV1."LineTotal" AS "Precio Total MXP",
 
     -- Totales
     OINV."DocTotal" AS "Total MXP",
-    TO_DECIMAL(OINV."DocTotal" * ORTT."Rate", 18, 4) AS "Total USD",
+    TO_DECIMAL(OINV."DocTotal" / ORTT."Rate", 18, 4) AS "Total USD",
     
     -- Información adicional
     INV1."WhsCode" AS "Almacen",
