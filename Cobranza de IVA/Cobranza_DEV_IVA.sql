@@ -92,7 +92,7 @@ SELECT
     
     CASE
         -- Cuanto esta en pesos, convertimos al tipo de cambio correcto
-        WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" * tc_calculo."TC", 18, 4)
+        WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" / tc_calculo."TC", 18, 4)
 
         -- Cuando esta en dolares
         WHEN ORCT."DocCurr" = 'USD' THEN 
