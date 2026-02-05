@@ -1,24 +1,27 @@
 SELECT 
-    -- PROVEEDOR
+    -- DATOS GENERALES (Factura o Anticipo)
     OCRD."CardCode" AS "Proveedor",
     OCRD."CardName" AS "Nombre",
     OCRD."LicTradNum" AS "RFC",
     
-    -- FACTURA
-    OPCH."DocNum" AS "No Factura",
-    OPCH."DocDate" AS "Fecha Factura",
+    -- DOCUMENTO ORIGEN
+    COALESCE(OPCH."DocNum", ODPO."DocNum") AS "No Doc",
+    CASE 
+        WHEN OPCH."DocNum" IS NOT NULL THEN 'Factura'
+        WHEN ODPO."DocNum" IS NOT NULL THEN 'Anticipo'
+        ELSE 'Otro'
+    END AS "Tipo Doc",
+    COALESCE(OPCH."DocDate", ODPO."DocDate") AS "Fecha Doc",
     
     -- LINEAS
-    PCH1."LineNum",
-    PCH1."ItemCode",
-    OITM."ItmsGrpCod", 
-    PCH1."Dscription",
-    PCH1."LineTotal" AS "Subtotal",
-    PCH1."VatSum" AS "IVA",
-    PCH1."VatPrcnt" AS "Tasa IVA",
+    COALESCE(PCH1."ItemCode", DPO1."ItemCode") AS "ItemCode",
+    COALESCE(PCH1."Dscription", DPO1."Dscription") AS "Descripcion",
+    COALESCE(PCH1."LineTotal", DPO1."LineTotal") AS "Subtotal",
+    COALESCE(PCH1."VatSum", DPO1."VatSum") AS "IVA",
+    COALESCE(PCH1."VatPrcnt", DPO1."VatPrcnt") AS "Tasa IVA",
 
     -- RETENCIONES
-    PCH5."WTAmnt" AS "Retencion",
+    COALESCE(PCH5."WTAmnt", DPO5."WTAmnt") AS "Retencion",
     OWHT."WTName" AS "Tipo Retencion",
 
     -- PAGO
@@ -27,33 +30,25 @@ SELECT
     
     CASE 
         WHEN OVPM."Canceled" = 'Y' THEN 'Cancelado'
-        ELSE ''
+        ELSE 'Asentado'
     END AS "Estado"
 
-
 FROM OVPM
-    
-    -- DOCUMENTOS RELACIONADOS AL PAGO
     INNER JOIN VPM2 ON OVPM."DocEntry" = VPM2."DocNum"
-
-    -- FACTURA PROVEEDOR SEGÚN EL DOCENTRY
-    INNER JOIN OPCH ON VPM2."DocEntry" = OPCH."DocEntry"
-
-    -- LINEAS DE LA FACTURA
-    INNER JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
-
-    -- RETENCIONES DE LA FACTURA
+    -- Unión con Facturas
+    LEFT JOIN OPCH ON VPM2."DocEntry" = OPCH."DocEntry" AND VPM2."InvType" = '18'
+    LEFT JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
     LEFT JOIN PCH5 ON OPCH."DocEntry" = PCH5."AbsEntry"
+    
+    -- Unión con Anticipos
+    LEFT JOIN ODPO ON VPM2."DocEntry" = ODPO."DocEntry" AND VPM2."InvType" = '204'
+    LEFT JOIN DPO1 ON ODPO."DocEntry" = DPO1."DocEntry"
+    LEFT JOIN DPO5 ON ODPO."DocEntry" = DPO5."AbsEntry"
 
-    -- DESCRIPCIÓN DE RETENCIONES
-    LEFT JOIN OWHT ON PCH5."WTCode" = OWHT."WTCode"
+    -- Catálogos comunes
+    LEFT JOIN OWHT ON (PCH5."WTCode" = OWHT."WTCode" OR DPO5."WTCode" = OWHT."WTCode")
+    INNER JOIN OCRD ON OVPM."CardCode" = OCRD."CardCode"
 
-    LEFT JOIN OITM ON PCH1."ItemCode" = OITM."ItemCode"
+WHERE VPM2."InvType" IN ('18', '204') -- Filtra solo Facturas y Anticipos
 
-    LEFT JOIN OITB ON OITM."ItmsGrpCod" = OITB."ItmsGrpCod"
-
-    -- PROVEEDOR
-    INNER JOIN OCRD ON OPCH."CardCode" = OCRD."CardCode"
-
-ORDER BY 
-    OVPM."DocDate" DESC
+ORDER BY OVPM."DocDate" DESC;
