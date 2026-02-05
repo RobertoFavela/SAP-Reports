@@ -15,6 +15,7 @@ SELECT
     
     -- LINEAS
     COALESCE(PCH1."ItemCode", DPO1."ItemCode") AS "ItemCode",
+    OITM."ItmsGrpCod", 
     COALESCE(PCH1."Dscription", DPO1."Dscription") AS "Descripcion",
     COALESCE(PCH1."LineTotal", DPO1."LineTotal") AS "Subtotal",
     COALESCE(PCH1."VatSum", DPO1."VatSum") AS "IVA",
@@ -48,6 +49,11 @@ FROM OVPM
     -- Catálogos comunes
     LEFT JOIN OWHT ON (PCH5."WTCode" = OWHT."WTCode" OR DPO5."WTCode" = OWHT."WTCode")
     INNER JOIN OCRD ON OVPM."CardCode" = OCRD."CardCode"
+    
+    -- Items
+    LEFT JOIN OITM ON PCH1."ItemCode" = OITM."ItemCode"
+
+    LEFT JOIN OITB ON OITM."ItmsGrpCod" = OITB."ItmsGrpCod"
 
 WHERE VPM2."InvType" IN ('18', '204') -- Filtra solo Facturas y Anticipos
 
