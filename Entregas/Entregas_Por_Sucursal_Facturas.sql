@@ -46,16 +46,16 @@ SELECT
     TO_DATE (ODLN."DocDate") AS "Fecha Entrega",
     TO_DATE (OINV."DocDate") AS "Fecha Factura",
 
-    DLN1."WhsCode" AS "Código de Almacén",
-    DLN1."DocDate" AS "Fecha Contabilización",
-    DLN1."BaseCard" AS "Código Base SN",
-    DLN1."OcrCode" AS "Norma de Reparto",
-    DLN1."VatGroup" AS "Definición del Impuesto",
-    DLN1."BaseDocNum" AS "Documento Base",
-    DLN1."FinncPriod" AS "Período Contable",
-    DLN1."ObjType" AS "Tipo de Objeto",
-    DLN1."unitMsr" AS "Unidad",
-    DLN1."StockSum",
+    INV1."WhsCode" AS "Código de Almacén",
+    INV1."DocDate" AS "Fecha Contabilización",
+    INV1."BaseCard" AS "Código Base SN",
+    INV1."OcrCode" AS "Norma de Reparto",
+    INV1."VatGroup" AS "Definición del Impuesto",
+    INV1."BaseDocNum" AS "Documento Base",
+    INV1."FinncPriod" AS "Período Contable",
+    INV1."ObjType" AS "Tipo de Objeto",
+    INV1."unitMsr" AS "Unidad",
+    INV1."StockSum",
 
     -- Costo del Artículo
     TO_DECIMAL (DLN1."StockPrice", 18, 4) AS "Costo del Artículo",
@@ -78,23 +78,23 @@ SELECT
         0
     ) AS "Utilidad",
 
-    DLN1."LineStatus",
-    DLN1."BaseType",
-    DLN1."BaseEntry",
-    DLN1."BaseAtCard",
-    DLN1."CogsOcrCod",
+    INV1."LineStatus",
+    INV1."BaseType",
+    INV1."BaseEntry",
+    INV1."BaseAtCard",
+    INV1."CogsOcrCod",
 
     -- Sucursales
-    DLN1."OcrCode2",
-    DLN1."OcrCode3",
+    INV1."OcrCode2",
+    INV1."OcrCode3",
     
     -- Ciclos
-    DLN1."OcrCode4",
-    DLN1."OcrCode5",
-    DLN1."U_SBO_MARCA",
-    DLN1."U_SBO_PRESENTACION",
-    DLN1."U_SBO_CICLO",
-    DLN1."U_SBO_CALIDAD"
+    INV1."OcrCode4",
+    INV1."OcrCode5",
+    INV1."U_SBO_MARCA",
+    INV1."U_SBO_PRESENTACION",
+    INV1."U_SBO_CICLO",
+    INV1."U_SBO_CALIDAD"
     
 -- Lineas de Facturas
 FROM INV1
@@ -126,8 +126,6 @@ FROM INV1
 WHERE
     OINV."CANCELED" = 'N'
     AND OITB."ItmsGrpNam" = 'PT CAMARON FRIZADO'
-
-    AND OINV."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
 
 ORDER BY
     OINV."DocNum" DESC
