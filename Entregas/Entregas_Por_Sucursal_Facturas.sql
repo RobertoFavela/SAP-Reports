@@ -6,7 +6,11 @@ SELECT
     -- Entregas
     ODLN."DocEntry" AS "ID Entrega",
     ODLN."DocNum" AS "No Entrega",
-
+    CASE         
+        WHEN ODLN."CANCELED" = 'Y' THEN 'Cancelada'        
+        WHEN ODLN."CANCELED" = 'C' THEN 'Cerrada'       
+        ELSE 'Vigente'
+    END AS "Estado de entrega",
     -- Articulos
     INV1."ItemCode" AS "No. de Artículo",
     INV1."Dscription" AS "Descripción Artículo/Servicio",
