@@ -1,0 +1,10 @@
+SELECT 
+    T0."CardCode" AS "Código SN", 
+    T0."CardName" AS "Nombre SN", 
+    T1."Address" AS "ID Dirección", 
+    T1."Address2" AS "Dirección 2", 
+    T1."Street" AS "Calle/Número",
+    T1."AdresType" AS "Tipo"
+FROM OCRD T0
+INNER JOIN CRD1 T1 ON T0."CardCode" = T1."CardCode"
+WHERE T1."Address2" LIKE '%' ||  [%0]  || '%'
