@@ -1,7 +1,8 @@
-SELECT 
-    T0."CardCode" AS "Código SN", 
+SELECT T0."CardCode" AS "Código SN", 
     T0."CardName" AS "Nombre SN", 
     T1."Address" AS "ID Dirección", 
+    T1."City" AS "Ciudad",
+    T1."Block" AS "Colonia",
     T1."Address2" AS "Dirección 2", 
     T1."Street" AS "Calle/Número",
     T1."AdresType" AS "Tipo"
