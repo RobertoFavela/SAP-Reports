@@ -100,6 +100,7 @@ WHERE
     -- Filtro de fechas de entradas
     OPDN."DocDate" BETWEEN '2025-01-01' AND '2025-12-31'
     AND OPDN."CANCELED" = 'N'
+    AND OPCH."CANCELED" = 'N'
 
 ORDER BY
     OPDN."DocNum" DESC
