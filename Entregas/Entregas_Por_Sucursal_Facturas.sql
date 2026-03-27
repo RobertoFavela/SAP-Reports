@@ -51,15 +51,8 @@ SELECT
     TO_DATE (OINV."DocDate") AS "Fecha Factura",
 
     INV1."WhsCode" AS "Código de Almacén",
-    INV1."DocDate" AS "Fecha Contabilización",
+    OINV."DocDate" AS "Fecha Contabilización",
     INV1."BaseCard" AS "Código Base SN",
-    INV1."OcrCode" AS "Norma de Reparto",
-    INV1."VatGroup" AS "Definición del Impuesto",
-    INV1."BaseDocNum" AS "Documento Base",
-    INV1."FinncPriod" AS "Período Contable",
-    INV1."ObjType" AS "Tipo de Objeto",
-    INV1."unitMsr" AS "Unidad",
-    INV1."StockSum",
 
     -- Costo del Artículo
     TO_DECIMAL (DLN1."StockPrice", 18, 4) AS "Costo del Artículo",
@@ -82,23 +75,23 @@ SELECT
         0
     ) AS "Utilidad",
 
-    INV1."LineStatus",
-    INV1."BaseType",
-    INV1."BaseEntry",
-    INV1."BaseAtCard",
     INV1."CogsOcrCod",
-
     -- Sucursales
     INV1."OcrCode2",
     INV1."OcrCode3",
-    
     -- Ciclos
     INV1."OcrCode4",
-    INV1."OcrCode5",
     INV1."U_SBO_MARCA",
     INV1."U_SBO_PRESENTACION",
     INV1."U_SBO_CICLO",
-    INV1."U_SBO_CALIDAD"
+    INV1."U_SBO_CALIDAD",
+
+    CASE
+        WHEN OITM."U_TIP_PRESENTACION" = 'K' 
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
+        WHEN OITM."U_TIP_PRESENTACION" = 'L'
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
+        END AS "Master"
     
 -- Lineas de Facturas
 FROM INV1

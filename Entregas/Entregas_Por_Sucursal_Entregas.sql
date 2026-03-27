@@ -35,13 +35,7 @@ SELECT
     TO_DATE (OINV."DocDate") AS "Fecha Factura",
     DLN1."WhsCode" AS "Almacen",
     DLN1."BaseCard" AS "Código Base SN",
-    DLN1."OcrCode" AS "Norma de Reparto",
-    DLN1."VatGroup" AS "Definición del Impuesto",
-    DLN1."BaseAtCard" AS "Documento Base",
-    DLN1."FinncPriod" AS "Período Contable",
-    DLN1."ObjType" AS "Tipo de Objeto",
-    DLN1."unitMsr" AS "Unidad",
-    DLN1."StockSum",
+
     TO_DECIMAL (DLN1."StockPrice", 18, 4) AS "Costo del Artículo",
     
     -- Ingreso
@@ -70,11 +64,17 @@ SELECT
     DLN1."OcrCode3",
     -- Ciclos
     DLN1."OcrCode4" AS "Ciclo",
-    DLN1."OcrCode5",
     DLN1."U_SBO_MARCA",
     DLN1."U_SBO_PRESENTACION",
     DLN1."U_SBO_CICLO",
-    DLN1."U_SBO_CALIDAD"
+    DLN1."U_SBO_CALIDAD",
+
+    CASE
+        WHEN OITM."U_TIP_PRESENTACION" = 'K' 
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
+        WHEN OITM."U_TIP_PRESENTACION" = 'L'
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
+        END AS "Master"
 
 -- Entregas lineas
 FROM DLN1
@@ -115,8 +115,6 @@ FROM DLN1
 WHERE
     -- Solo entregas no canceladas
     ODLN."CANCELED" = 'N'
-
-    AND ODLN."DocNum" = '3730'
     
     -- Solo entregas de camaron frizado
     AND OITB."ItmsGrpNam" = 'PT CAMARON FRIZADO'
@@ -129,7 +127,5 @@ WHERE
     -- Colocar "--" antes de la linea para mostrar todos
     -- AND DLN1."OcrCode4" = 'C0005'
     
-    -- Filtro de fechas
-    AND DLN1."DocDate" BETWEEN '2025-11-01' AND '2025-11-30'
-
-
+ORDER BY 
+    ODLN."DocNum" DESC
