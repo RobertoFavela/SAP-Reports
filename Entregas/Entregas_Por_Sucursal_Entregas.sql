@@ -1,10 +1,26 @@
 SELECT
+    -- Facturas
+    CASE         
+        WHEN OINV."DocEntry" IS NULL THEN ''      
+        WHEN OINV."isIns" = 'Y' THEN 'Reserva'        
+        ELSE 'Deudor'    
+    END AS "Tipo Factura",
     OINV."DocEntry" AS "ID Factura",
     COALESCE(OINV."DocNum", DLN21."RefDocNum") AS "No. Factura",
+    
+    -- Entregas
     ODLN."DocEntry" AS "ID Entrega",
     ODLN."DocNum" AS "Entrega",
+    CASE
+        WHEN ODLN."CANCELED" = 'Y' THEN 'Cancelada'
+        WHEN ODLN."CANCELED" = 'C' THEN 'Cerrada'
+        ELSE 'Vigente'
+    END AS "Estado entrega",
+    
+    -- Articulos
     DLN1."ItemCode" AS "Articulo",
     DLN1."Dscription" AS "Descripcion",
+
     -- KGS Facturados (cliente C00131: Libras a kilos - articulo VA24PUPV68: 200gr)
     TO_DECIMAL (
         CASE
@@ -16,34 +32,54 @@ SELECT
         18,
         4
     ) AS "KGS Facturados",
-    DLN1."Quantity" AS "KGS Entrega",
+
+    CASE
+        WHEN OINV."isIns" = 'Y' THEN DLN1."Quantity"
+        ELSE INV1."Quantity"
+    END AS "KGS Entrega",
+
     RIN1."Quantity" AS "KGS Crédito",
+
     -- Diferencia (cliente C00131: libras a kilos - articulo VA24PUPV68: 200gr)
-    TO_DECIMAL (
-        (
-            CASE
-                WHEN DLN1."BaseCard" = 'C00131'
-                AND INV1."ItemCode" = 'VA24PUPV68' THEN TO_DECIMAL (INV1."Quantity", 18, 6) / TO_DECIMAL (5, 18, 6)
-                WHEN DLN1."BaseCard" = 'C00131' THEN TO_DECIMAL (INV1."Quantity", 18, 6) * TO_DECIMAL (0.45359237, 18, 6)
-                ELSE TO_DECIMAL (INV1."Quantity", 18, 6)
-            END - COALESCE(TO_DECIMAL (DLN1."Quantity", 18, 6), 0) - COALESCE(TO_DECIMAL (RIN1."Quantity", 18, 6), 0)
-        ),
-        18,
-        4
-    ) AS "Diferencia",
+    CASE
+        WHEN OINV."isIns" = 'Y' THEN
+            TO_DECIMAL (
+                (
+                    CASE
+                        WHEN DLN1."BaseCard" = 'C00131'
+                        AND INV1."ItemCode" = 'VA24PUPV68' THEN TO_DECIMAL (INV1."Quantity", 18, 6) / TO_DECIMAL (5, 18, 6)
+                        WHEN DLN1."BaseCard" = 'C00131' THEN TO_DECIMAL (INV1."Quantity", 18, 6) * TO_DECIMAL (0.45359237, 18, 6)
+                        ELSE TO_DECIMAL (INV1."Quantity", 18, 6)
+                    END - COALESCE(TO_DECIMAL (DLN1."Quantity", 18, 6), 0) - COALESCE(TO_DECIMAL (RIN1."Quantity", 18, 6), 0)
+                ),
+                18,
+                4
+            )
+        ELSE TO_DECIMAL(0, 18,4)
+    END AS "Diferencia",
+
+    -- Fechas
     TO_DATE (DLN1."ShipDate") AS "Fecha Entrega",
     TO_DATE (OINV."DocDate") AS "Fecha Factura",
+    
     DLN1."WhsCode" AS "Almacen",
     DLN1."BaseCard" AS "Código Base SN",
 
-    TO_DECIMAL (DLN1."StockPrice", 18, 4) AS "Costo del Artículo",
+    -- Costo del Articulo
+    CASE 
+        WHEN OINV."isIns" = 'Y' THEN TO_DECIMAL (DLN1."StockPrice", 18, 6) 
+        ELSE TO_DECIMAL(INV1."StockPrice",18,6)
+    END AS "Costo del Artículo",
     
     -- Ingreso
     TO_DECIMAL (INV1."GTotal", 18, 6) AS "Ingreso",
     
     -- Costo de venta 
     -- (Cantidad * Precio de stock)
-    TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6) AS "Costo Venta",
+     CASE 
+        WHEN OINV."isIns" = 'Y' THEN (TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6))
+        ELSE TO_DECIMAL (INV1."Quantity", 18, 6) * TO_DECIMAL(INV1."StockPrice", 18, 6)
+    END AS "Costo Venta",
     
     -- Importe Nota Crédito
     TO_DECIMAL (RIN1."Quantity", 18, 6) * TO_DECIMAL (RIN1."Price", 18, 6) + TO_DECIMAL (RIN1."VatSum", 18, 6) AS "Importe Nota Crédito",
@@ -69,12 +105,24 @@ SELECT
     DLN1."U_SBO_CICLO",
     DLN1."U_SBO_CALIDAD",
 
-    CASE
-        WHEN OITM."U_TIP_PRESENTACION" = 'K' 
-            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
-        WHEN OITM."U_TIP_PRESENTACION" = 'L'
-            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
-        END AS "Master"
+    CASE 
+    /* Cuando ES Factura de Reserva (Usa DLN1 - Entrega) */
+    WHEN OINV."isIns" = 'Y' THEN
+        CASE
+            WHEN OITM."U_TIP_PRESENTACION" = 'K' 
+                THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
+            WHEN OITM."U_TIP_PRESENTACION" = 'L'
+                THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
+        END
+    /* Cuando NO ES Factura de Reserva (Usa INV1 - Factura) */
+    ELSE
+        CASE
+            WHEN OITM."U_TIP_PRESENTACION" = 'K' 
+                THEN TO_DECIMAL(INV1."Quantity" / OITM."U_KILOS", 18, 4)
+            WHEN OITM."U_TIP_PRESENTACION" = 'L'
+                THEN TO_DECIMAL(INV1."Quantity" / OITM."U_LIBRAS", 18, 4)
+        END
+    END AS "Master"
 
 -- Entregas lineas
 FROM DLN1
