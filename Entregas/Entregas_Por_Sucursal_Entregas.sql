@@ -66,20 +66,14 @@ SELECT
     DLN1."BaseCard" AS "Código Base SN",
 
     -- Costo del Articulo
-    CASE 
-        WHEN OINV."isIns" = 'Y' THEN TO_DECIMAL (DLN1."StockPrice", 18, 6) 
-        ELSE TO_DECIMAL(INV1."StockPrice",18,6)
-    END AS "Costo del Artículo",
+    TO_VARCHAR(TO_DECIMAL(DLN1."StockPrice", 18, 4)) AS "Costo del Artículo",
     
     -- Ingreso
     TO_DECIMAL (INV1."GTotal", 18, 6) AS "Ingreso",
     
     -- Costo de venta 
     -- (Cantidad * Precio de stock)
-     CASE 
-        WHEN OINV."isIns" = 'Y' THEN (TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6))
-        ELSE TO_DECIMAL (INV1."Quantity", 18, 6) * TO_DECIMAL(INV1."StockPrice", 18, 6)
-    END AS "Costo Venta",
+    TO_VARCHAR((TO_DECIMAL (DLN1."Quantity", 18, 4) * TO_DECIMAL (DLN1."StockPrice", 18, 4))) AS "Costo Venta",
     
     -- Importe Nota Crédito
     TO_DECIMAL (RIN1."Quantity", 18, 6) * TO_DECIMAL (RIN1."Price", 18, 6) + TO_DECIMAL (RIN1."VatSum", 18, 6) AS "Importe Nota Crédito",
@@ -105,23 +99,11 @@ SELECT
     DLN1."U_SBO_CICLO",
     DLN1."U_SBO_CALIDAD",
 
-    CASE 
-    /* Cuando ES Factura de Reserva (Usa DLN1 - Entrega) */
-    WHEN OINV."isIns" = 'Y' THEN
-        CASE
-            WHEN OITM."U_TIP_PRESENTACION" = 'K' 
-                THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
-            WHEN OITM."U_TIP_PRESENTACION" = 'L'
-                THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
-        END
-    /* Cuando NO ES Factura de Reserva (Usa INV1 - Factura) */
-    ELSE
-        CASE
-            WHEN OITM."U_TIP_PRESENTACION" = 'K' 
-                THEN TO_DECIMAL(INV1."Quantity" / OITM."U_KILOS", 18, 4)
-            WHEN OITM."U_TIP_PRESENTACION" = 'L'
-                THEN TO_DECIMAL(INV1."Quantity" / OITM."U_LIBRAS", 18, 4)
-        END
+    CASE
+        WHEN OITM."U_TIP_PRESENTACION" = 'K' 
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_KILOS", 18, 4)
+        WHEN OITM."U_TIP_PRESENTACION" = 'L'
+            THEN TO_DECIMAL(DLN1."Quantity" / OITM."U_LIBRAS", 18, 4)
     END AS "Master"
 
 -- Entregas lineas

@@ -15,6 +15,7 @@ SELECT
         WHEN ODLN."CANCELED" = 'C' THEN 'Cerrada'       
         ELSE 'Vigente'
     END AS "Estado de entrega",
+    
     -- Articulos
     INV1."ItemCode" AS "No. de Artículo",
     INV1."Dscription" AS "Descripción Artículo/Servicio",
@@ -71,10 +72,12 @@ SELECT
     INV1."BaseCard" AS "Código Base SN",
 
     -- Costo del Artículo
-    CASE 
-        WHEN OINV."isIns" = 'Y' THEN TO_DECIMAL (DLN1."StockPrice", 18, 4) 
-        ELSE TO_DECIMAL(INV1."StockPrice",18,4)
-    END AS "Costo del Artículo",
+    TO_VARCHAR(
+        CASE 
+            WHEN OINV."isIns" = 'Y' THEN TO_DECIMAL (DLN1."StockPrice", 18, 4) 
+            ELSE TO_DECIMAL(INV1."StockPrice", 18, 4)
+        END
+    ) AS "Costo del Artículo",
     
     -- Ingreso
     TO_DECIMAL (INV1."GTotal", 18, 6) AS "Ingreso",
@@ -107,11 +110,6 @@ SELECT
     INV1."U_SBO_PRESENTACION",
     INV1."U_SBO_CICLO",
     INV1."U_SBO_CALIDAD",
-
-    CASE 
-        WHEN OINV."isIns" = 'Y' THEN 'Reserva' 
-        ELSE 'Deudor' 
-    END AS "Tipo_Factura",
 
     CASE 
     /* Cuando ES Factura de Reserva (Usa DLN1 - Entrega) */
