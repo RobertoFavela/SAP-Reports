@@ -8,6 +8,7 @@ SELECT
     OPCH."CardName" AS "Nombre de proveedor",
     OPCH."NumAtCard" AS "Numero de referencia de deudor",
     OPCH."DocCur" AS "Moneda del documento",
+    OPCH."DocRate" AS "Tipo de cambio de documento",
     PCH1."ItemCode" AS "Numero del articulo",
     PCH1."Dscription" AS "Descripcion",
     PCH1."LegalText" AS "Texto legal",
