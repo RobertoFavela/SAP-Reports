@@ -9,6 +9,13 @@ SELECT
     T0."ProdName" AS "Descripcion Padre OWOR",
     
     -- Datos de las Líneas (Componentes Planificados) de la Orden
+    CASE T1."ItemType"
+        WHEN 4 THEN 'Artículo'
+        WHEN 290 THEN 'Recurso'
+        WHEN -16 THEN 'Texto'
+        WHEN 1 THEN 'Gasto Adicional'
+        ELSE 'Otro'
+    END AS "Tipo de Elemento",
     T1."ItemCode" AS "Componente Planificado",
     -- Buscamos la descripción en OITM para asegurar que aparezca aunque no haya emisión
     T3."ItemName" AS "Descripcion Componente Planificado", 
@@ -25,8 +32,7 @@ SELECT
 
 FROM OWOR T0
 INNER JOIN WOR1 T1 ON T0."DocEntry" = T1."DocEntry"
-INNER JOIN OITM T3 ON T1."ItemCode" = T3."ItemCode"
--- Usamos LEFT JOIN para no perder ninguna línea de la Orden de Fabricación
+LEFT JOIN OITM T3 ON T1."ItemCode" = T3."ItemCode" 
 LEFT JOIN IGE1 T2 ON T2."BaseEntry" = T0."DocEntry" 
                  AND T2."BaseLine" = T1."LineNum" 
                  AND T2."BaseType" = 202
