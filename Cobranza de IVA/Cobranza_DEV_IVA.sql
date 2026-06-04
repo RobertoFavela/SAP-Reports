@@ -1,39 +1,125 @@
-SELECT 
-    T0."RefDate" AS "Fecha Asiento Contable", 
-    T0."TransId" AS "ID Transacción", 
-    T5."SeriesName" AS "Tipo Poliza",
-    T0."Number" AS "Número de Asiento", 
-    T0."BaseRef" AS "Referencia Base",
-    
-    -- tipo de documento
-    CASE T0."TransType"
-        WHEN '13' THEN 'Factura de Deudores (Clientes)'
-        WHEN '18' THEN 'Factura de Proveedores'
-        WHEN '24' THEN 'Pago Recibido (Clientes)'
-        WHEN '46' THEN 'Pago Efectuado (Proveedores)'
-        WHEN '30' THEN 'Asiento Manual'
+WITH tc_calculo AS (
+    SELECT
+        ORCT."DocEntry",
+        CASE
+            WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(ORTT."Rate", 18, 4)
+            WHEN ORCT."DocCurr" = 'USD' THEN TO_DECIMAL(ORCT."DocRate", 18, 4)
+            ELSE NULL
+        END AS "TC"
+    FROM ORCT
+    LEFT JOIN ORTT ON ORTT."RateDate" = ORCT."DocDate"
+)
+
+SELECT
+
+    -- Poliza
+    TO_DATE(ORCT."DocDate") AS "Fecha Poliza",
+    NNM1."SeriesName" AS "Tipo Poliza",
+    ORCT."DocNum" AS "Numero Poliza",
+
+    -- Documento referenciado ( Factura / Nota de credito)
+    COALESCE(ECM2_Factura."ReportID", ECM2_Credito."ReportID") AS "Folio Fiscal",
+    COALESCE(OINV."DocNum", ORIN."DocNum") AS "No. Documento",
+
+    CASE RCT2."InvType"
+        WHEN 13 THEN 'Factura de cliente'
+        WHEN 14 THEN 'Nota de crédito de cliente'
         ELSE 'Otro'
     END AS "Tipo Documento",
+
+    COALESCE(TO_DATE(OINV."DocDate"), TO_DATE(ORIN."DocDate")) AS "Fecha Documento",
+
+    -- Cliente
+    OCRD."LicTradNum" AS "RFC",
+    ORCT."CardName" AS "Cliente",
+
+    -- Moneda
+    ORCT."DocCurr" AS "Moneda",
+
+    CASE
+        WHEN ORCT."DocCurr" = 'MXP' THEN RCT2."SumApplied"
+        WHEN ORCT."DocCurr" = 'USD' THEN 
+            CASE
+                WHEN RCT2."InvType" = '13' THEN
+                    TO_DECIMAL((RCT2."SumApplied" / OINV."DocRate") * ORCT."DocRate", 18, 4)
+                WHEN RCT2."InvType" = '14' THEN
+                    TO_DECIMAL((RCT2."SumApplied" / ORIN."DocRate") * ORCT."DocRate", 18, 4)
+            END
+    END AS "Monto MXP", 
+
+    -- Tipo de cambio (usando el CTE)
+    tc_calculo."TC",
+
+    CASE
+        WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" / tc_calculo."TC", 18, 4)
+        WHEN ORCT."DocCurr" = 'USD' THEN 
+            CASE 
+                WHEN RCT2."InvType" = '13' THEN 
+                    TO_DECIMAL((RCT2."SumApplied" / OINV."DocRate"), 18, 4)
+                WHEN RCT2."InvType" = '14' THEN
+                    TO_DECIMAL((RCT2."SumApplied" / ORIN."DocRate"), 18, 4)
+            END
+    END AS "Monto USD",
+
+            
     
-    -- DocNum y DocEntry de los documentos origen
-    COALESCE(T1."DocNum", T2."DocNum", T3."DocNum", T4."DocNum") AS "DocNum", 
-    COALESCE(T1."DocEntry", T2."DocEntry", T3."DocEntry", T4."DocEntry") AS "DocEntry"
 
-FROM OJDT T0
--- Unión para traer el nombre de la serie (Tipo de Póliza)
-INNER JOIN NNM1 T5 ON T0."Series" = T5."Series"
+    TO_DATE(ORCT."DocDate") AS "Fecha de cobro",
 
--- Proveedores (Facturas y Pagos Efectuados)
-LEFT JOIN OPCH T1 ON T0."TransId" = T1."TransId" AND T0."TransType" = '18'
-LEFT JOIN OVPM T2 ON T0."TransId" = T2."TransId" AND T0."TransType" = '46'
+    CASE
+        WHEN ORCT."TrsfrSum" > 0 THEN 'Transferencia'
+        WHEN ORCT."CredSumSy" > 0 THEN 'Crédito'
+        WHEN ORCT."CheckSum" > 0 THEN 'Cheque'
+        WHEN ORCT."CashSum" > 0 THEN 'Efectivo'
+        ELSE NULL
+    END AS "Forma de pago",
 
--- Deudores (Facturas y Pagos Recibidos)
-LEFT JOIN OINV T3 ON T0."TransId" = T3."TransId" AND T0."TransType" = '13'
-LEFT JOIN ORCT T4 ON T0."TransId" = T4."TransId" AND T0."TransType" = '24'
+    TRIM(
+        SUBSTRING(
+            OACT."AcctName",
+            1,
+            INSTR(OACT."AcctName", 'CTA') - 1
+        )
+    ) AS "Banco",
+
+    TRIM(
+        SUBSTRING(
+            OACT."AcctName",
+            INSTR(OACT."AcctName", 'CTA') + 4,
+            LENGTH(OACT."AcctName")
+        )
+    ) AS "Cuenta",
+
+    -- Total
+    ORCT."DocTotal" AS "Deposito Bancos"
+
+FROM ORCT
+    INNER JOIN RCT2 ON ORCT."DocEntry" = RCT2."DocNum"
+
+    -- Serie del pago recibido, Tipo de poliza
+    INNER JOIN NNM1 ON ORCT."Series" = NNM1."Series"
+
+    -- Factura relacionada
+    LEFT JOIN OINV ON RCT2."DocEntry" = OINV."DocEntry" AND OINV."CANCELED" = 'N'
+
+    -- Credito relacionado
+    LEFT JOIN ORIN ON RCT2."DocEntry" = ORIN."DocEntry" AND ORIN."CANCELED" = 'N' 
+    
+    -- Folio fiscal
+    LEFT JOIN ECM2 ECM2_Factura ON ECM2_Factura."ObjectID" = 'RF ' || TO_NVARCHAR(OINV."DocNum")
+    LEFT JOIN ECM2 ECM2_Credito ON ECM2_Credito."ObjectID" = 'RC ' || TO_NVARCHAR(ORIN."DocNum")
+
+    -- Cliente
+    INNER JOIN OCRD ON OCRD."CardCode" = ORCT."CardCode"
+
+    -- Banco
+    LEFT JOIN OACT ON ORCT."TrsfrAcct" = OACT."AcctCode"
+
+    -- Tipo de cambio
+    LEFT JOIN tc_calculo ON tc_calculo."DocEntry" = ORCT."DocEntry"
 
 WHERE 
-    T0."RefDate" BETWEEN '2024-01-01' AND '2024-12-31' 
-    -- AND T0."TransType" IN ('13', '18', '24', '46')
+    ORCT."Canceled" = 'N'
 
-ORDER BY 
-    T0."RefDate" ASC;
+ORDER BY
+    ORCT."DocNum" DESC;
