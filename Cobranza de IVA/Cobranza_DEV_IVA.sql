@@ -2,8 +2,8 @@ WITH tc_calculo AS (
     SELECT
         ORCT."DocEntry",
         CASE
-            WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(ORTT."Rate", 18, 4)
-            WHEN ORCT."DocCurr" = 'USD' THEN TO_DECIMAL(ORCT."DocRate", 18, 4)
+            WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(NULLIF(ORTT."Rate", 0), 18, 4)
+            WHEN ORCT."DocCurr" = 'USD' THEN TO_DECIMAL(NULLIF(ORCT."DocRate", 0), 18, 4)
             ELSE NULL
         END AS "TC"
     FROM ORCT
@@ -41,9 +41,9 @@ SELECT
         WHEN ORCT."DocCurr" = 'USD' THEN 
             CASE
                 WHEN RCT2."InvType" = '13' THEN
-                    TO_DECIMAL((RCT2."SumApplied" / OINV."DocRate") * ORCT."DocRate", 18, 4)
+                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(OINV."DocRate", 0)) * ORCT."DocRate", 18, 4)
                 WHEN RCT2."InvType" = '14' THEN
-                    TO_DECIMAL((RCT2."SumApplied" / ORIN."DocRate") * ORCT."DocRate", 18, 4)
+                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(ORIN."DocRate", 0)) * ORCT."DocRate", 18, 4)
             END
     END AS "Monto MXP", 
 
@@ -51,13 +51,13 @@ SELECT
     tc_calculo."TC",
 
     CASE
-        WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" / tc_calculo."TC", 18, 4)
+        WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" / NULLIF(tc_calculo."TC", 0), 18, 4)
         WHEN ORCT."DocCurr" = 'USD' THEN 
             CASE 
                 WHEN RCT2."InvType" = '13' THEN 
-                    TO_DECIMAL((RCT2."SumApplied" / OINV."DocRate"), 18, 4)
+                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(OINV."DocRate", 0)), 18, 4)
                 WHEN RCT2."InvType" = '14' THEN
-                    TO_DECIMAL((RCT2."SumApplied" / ORIN."DocRate"), 18, 4)
+                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(ORIN."DocRate", 0)), 18, 4)
             END
     END AS "Monto USD",
 
