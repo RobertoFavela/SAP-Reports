@@ -17,17 +17,28 @@ SELECT
     COALESCE(PCH1."ItemCode", DPO1."ItemCode") AS "ItemCode",
     OITM."ItmsGrpCod", 
     COALESCE(PCH1."Dscription", DPO1."Dscription") AS "Descripcion",
-    COALESCE(PCH1."LineTotal", DPO1."LineTotal") AS "Subtotal",
-    COALESCE(PCH1."VatSum", DPO1."VatSum") AS "IVA",
+    
+    -- CALCULOS PROPORCIONALES (Por Porcentaje del Pago)
+    ROUND(
+        COALESCE(PCH1."LineTotal", DPO1."LineTotal") * (VPM2."SumApplied" / NULLIF(COALESCE(OPCH."DocTotal", ODPO."DocTotal"), 0))
+    , 2) AS "Subtotal Proporcional",
+
+    ROUND(
+        COALESCE(PCH1."VatSum", DPO1."VatSum") * (VPM2."SumApplied" / NULLIF(COALESCE(OPCH."DocTotal", ODPO."DocTotal"), 0))
+    , 2) AS "IVA Proporcional",
+
     COALESCE(PCH1."VatPrcnt", DPO1."VatPrcnt") AS "Tasa IVA",
 
     -- RETENCIONES
-    COALESCE(PCH5."WTAmnt", DPO5."WTAmnt") AS "Retencion",
+    ROUND(
+        COALESCE(PCH5."WTAmnt", DPO5."WTAmnt") * (VPM2."SumApplied" / NULLIF(COALESCE(OPCH."DocTotal", ODPO."DocTotal"), 0))
+    , 2) AS "Retencion Proporcional",
     OWHT."WTName" AS "Tipo Retencion",
 
     -- PAGO
     OVPM."DocNum" AS "No Pago",
     OVPM."DocDate" AS "Fecha Pago",
+    VPM2."SumApplied" AS "Monto Aplicado al Doc",
     
     CASE 
         WHEN OVPM."Canceled" = 'Y' THEN 'Cancelado'
