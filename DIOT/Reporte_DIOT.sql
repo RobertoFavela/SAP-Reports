@@ -11,6 +11,7 @@ SELECT
         WHEN ODPO."DocNum" IS NOT NULL THEN 'Anticipo'
         ELSE 'Otro'
     END AS "Tipo Doc",
+    COALESCE(OPCH."U_UDF_UUID", ODPO."U_UDF_UUID") AS "UUID",
     COALESCE(OPCH."DocDate", ODPO."DocDate") AS "Fecha Doc",
     
     -- LINEAS
