@@ -3,6 +3,7 @@ SELECT
     TO_DATE(OPCH."DocDate") AS "Fecha de contabilizacion",
     OPCH."DocNum" AS "No Factura",
     OPCH."DocEntry" AS "ID Factura",
+    OVPM."DocDate" AS "Fecha de pago de Factura",
 
     -- Datos del pedido original
     OPOR."DocNum" AS "No. de pedido",
@@ -72,6 +73,12 @@ FROM OPCH
 
     -- Cabecera del pedido
     LEFT JOIN OPOR ON OPOR."DocEntry" = POR1."DocEntry"
+
+    -- JOIN CON PAGOS
+    INNER JOIN VPM2 ON VPM2."DocEntry" = OPCH."DocEntry"
+        AND VPM2."InvType" = '18'
+    INNER JOIN OVPM ON OVPM."DocEntry" = VPM2."DocNum"
+        AND OVPM."Canceled" = 'N'
 
     -- Tipos de cambio
     LEFT JOIN ORTT ON ORTT."RateDate" = OPCH."DocDate"
