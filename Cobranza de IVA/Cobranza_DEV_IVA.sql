@@ -47,18 +47,14 @@ SELECT
             END
     END AS "Monto MXP", 
 
-    -- Tipo de cambio (usando el CTE)
-    tc_calculo."TC",
+    -- Como texto para conservar los cuatro decimales, incluso cuando terminen en cero.
+    TO_VARCHAR(TO_DECIMAL(tc_calculo."TC", 18, 4), '0.0000') AS "TC",
 
     CASE
         WHEN ORCT."DocCurr" = 'MXP' THEN TO_DECIMAL(RCT2."SumApplied" / NULLIF(tc_calculo."TC", 0), 18, 4)
-        WHEN ORCT."DocCurr" = 'USD' THEN 
-            CASE 
-                WHEN RCT2."InvType" = '13' THEN 
-                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(OINV."DocRate", 0)), 18, 4)
-                WHEN RCT2."InvType" = '14' THEN
-                    TO_DECIMAL((RCT2."SumApplied" / NULLIF(ORIN."DocRate", 0)), 18, 4)
-            END
+        -- AppliedFC es el importe aplicado en moneda extranjera (USD),
+        -- mientras que SumApplied está expresado en moneda local (MXP).
+        WHEN ORCT."DocCurr" = 'USD' THEN TO_DECIMAL(RCT2."AppliedFC", 18, 4)
     END AS "Monto USD",
 
             
