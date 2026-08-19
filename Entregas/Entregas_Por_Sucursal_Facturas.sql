@@ -93,7 +93,12 @@ SELECT
     
     -- Utilidad (Ingreso - Costo de venta - Importe nota de credito)
     TO_DECIMAL (INV1."GTotal", 18, 6) - COALESCE(
-        TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6),
+        CASE
+            WHEN OINV."isIns" = 'Y' THEN
+                TO_DECIMAL (DLN1."Quantity", 18, 6) * TO_DECIMAL (DLN1."StockPrice", 18, 6)
+            ELSE
+                TO_DECIMAL (INV1."Quantity", 18, 6) * TO_DECIMAL (INV1."StockPrice", 18, 6)
+        END,
         0
     ) - COALESCE(
         TO_DECIMAL (RIN1."Quantity", 18, 6) * TO_DECIMAL (RIN1."Price", 18, 6) + TO_DECIMAL (RIN1."VatSum", 18, 6),
