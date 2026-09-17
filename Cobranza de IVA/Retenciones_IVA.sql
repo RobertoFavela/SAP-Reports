@@ -1,3 +1,5 @@
+/* SELECT FROM "OVPM" T0 WHERE T0."DocDate" >= [%0] AND T0."DocDate" <= [%1]; */
+
 SELECT
     'FACTURA' AS "TIPO DOCUMENTO",
 
@@ -67,6 +69,8 @@ FROM OPCH
     ) RET ON OPCH."DocEntry" = RET."AbsEntry"
 
     LEFT JOIN OCRD ON OCRD."CardCode" = OPCH."CardCode"
+
+WHERE OVPM."DocDate" BETWEEN '[%0]' AND '[%1]'
 
 UNION ALL
 
@@ -139,5 +143,7 @@ FROM ODPO
     ) RET ON ODPO."DocEntry" = RET."AbsEntry"
 
     LEFT JOIN OCRD ON OCRD."CardCode" = ODPO."CardCode"
+
+WHERE OVPM."DocDate" BETWEEN '[%0]' AND '[%1]'
 
 ORDER BY "FECHA FACTURA" DESC;
