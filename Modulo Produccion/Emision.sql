@@ -1,3 +1,5 @@
+/* SELECT FROM "OVPM" T0 WHERE T0."DocDate" >= [%0] AND T0."DocDate" <= [%1]; */
+
 SELECT 
     T4."DocDate" AS "Fecha Emision",    
     T4."DocNum" AS "Num Emision",
@@ -37,4 +39,7 @@ LEFT JOIN IGE1 T2 ON T2."BaseEntry" = T0."DocEntry"
                  AND T2."BaseLine" = T1."LineNum" 
                  AND T2."BaseType" = 202
 LEFT JOIN OIGE T4 ON T2."DocEntry" = T4."DocEntry"
+
+WHERE T4."DocDate" BETWEEN '[%0]' AND '[%1]'
+
 ORDER BY T0."DocNum", T1."LineNum";

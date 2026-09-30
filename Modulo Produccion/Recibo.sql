@@ -1,3 +1,7 @@
+/* SELECT FROM "OIGN" T0
+   WHERE T0."DocDate" >= [%0]
+     AND T0."DocDate" <= [%1]; */
+
 SELECT
     OIGN."DocNum" AS "Numero Documento",
     OIGN."DocDate" AS "Fecha Contabilizacion",
@@ -11,10 +15,11 @@ SELECT
     IGN1."StockPrice" AS "Costo del Articulo",
     OWOR."PlannedQty" AS "Cantidad Planificada OWOR",
     OIGN."Comments" AS "Comentarios"
-FROM OIGN
-INNER JOIN IGN1    
+FROM "OIGN" OIGN
+INNER JOIN "IGN1" IGN1
     ON OIGN."DocEntry" = IGN1."DocEntry"
-INNER JOIN OWOR    
-    ON IGN1."BaseEntry" = OWOR."DocEntry"   
-    AND IGN1."BaseType" = 202
- ORDER BY OIGN."DocNum";
+INNER JOIN "OWOR" OWOR
+    ON IGN1."BaseEntry" = OWOR."DocEntry"
+   AND IGN1."BaseType" = 202
+WHERE OIGN."DocDate" BETWEEN '[%0]' AND '[%1]'
+ORDER BY OIGN."DocNum"
