@@ -1,22 +1,25 @@
+/* SELECT FROM "OPCH" T0 WHERE T0."DocDate" >= [%0] AND T0."DocDate" <= [%1]; */
+
 SELECT
     -- Datos de la factura de proveedor
     TO_DATE(OPCH."DocDate") AS "Fecha de contabilizacion",
     OPCH."DocNum" AS "No Factura",
     OPCH."DocEntry" AS "ID Factura",
-    OVPM."DocDate" AS "Fecha de pago de Factura",
+
+    -- Retorna la fecha del pago (o NULL si no está pagada)
+    OVPM."DocDate" AS "Fecha Pago Factura",
 
     -- Datos del pedido original
     OPOR."DocNum" AS "No. de pedido",
     OPOR."NumAtCard" AS "No. ref. del acreedor",
-    OPOR."CardCode" AS "No. Proveedor",
-    OPOR."CardName" AS "Proveedor",
+    OPCH."CardCode" AS "No. Proveedor",
+    OPCH."CardName" AS "Proveedor",
 
     -- Datos del artículo en factura de proveedor
     PCH1."ItemCode" AS "No. de articulo",
     PCH1."Dscription" AS "Descripcion de articulo",
     PCH1."Quantity" AS "Cantidad",
     PCH1."Price" AS "Precio por unidad",
-
     PCH1."LineTotal" AS "Total de linea",
 
     -- IVA
@@ -42,11 +45,8 @@ SELECT
 
     -- Campos definidos por el usuario
     OPCH."U_UDF_UUID" AS "UDF_UUID",
-
     OPOR."Comments" AS "Comentario del Pedido",
-
     PCH1."AcctCode" AS "Cuenta contable",
-
     PCH1."OcrCode" AS "Negocio",
     PCH1."OcrCode2" AS "Sucursal",
     PCH1."OcrCode3" AS "Area",
@@ -74,22 +74,26 @@ FROM OPCH
     -- Cabecera del pedido
     LEFT JOIN OPOR ON OPOR."DocEntry" = POR1."DocEntry"
 
-    -- JOIN CON PAGOS
-    INNER JOIN VPM2 ON VPM2."DocEntry" = OPCH."DocEntry"
-        AND VPM2."InvType" = '18'
-    INNER JOIN OVPM ON OVPM."DocEntry" = VPM2."DocNum"
-        AND OVPM."Canceled" = 'N'
+    -- Subconsulta para obtener ÚNICAMENTE el último pago válido por factura (evita duplicados y exclusiones)
+    LEFT JOIN (
+        SELECT 
+            T1."DocEntry" AS "FacturaDocEntry",
+            MAX(T0."DocDate") AS "DocDate"
+        FROM OVPM T0
+        INNER JOIN VPM2 T1 ON T0."DocEntry" = T1."DocNum"
+        WHERE T1."InvType" = '18' 
+          AND T0."Canceled" = 'N'
+        GROUP BY T1."DocEntry"
+    ) OVPM ON OVPM."FacturaDocEntry" = OPCH."DocEntry"
 
     -- Tipos de cambio
     LEFT JOIN ORTT ON ORTT."RateDate" = OPCH."DocDate"
         AND ORTT."Currency" = 'USD'
 
--- Filtro
+-- Filtros
 WHERE 
-    OPCH."CANCELED" = 'N'
-
-    -- Filtro de fechas
-    AND OPCH."DocDate" BETWEEN '2025-01-01' AND '2025-12-31'
+    OPCH."DocDate" BETWEEN '[%0]' AND '[%1]'
+    AND OPCH."CANCELED" = 'N'
 
 ORDER BY 
-    OPCH."DocNum" DESC
+    OPCH."DocNum" DESC;
