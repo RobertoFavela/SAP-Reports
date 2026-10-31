@@ -1,5 +1,5 @@
-    -- LINEAS DE PROVEEDOR DE FACTURA
-    -- Traemos unicamente las lineas con JDT1."SourceLine" = 1, indican el proveedor
+/* SELECT FROM OJDT T0 WHERE T0."RefDate" >= [%0] AND T0."RefDate" <= [%1] */
+
 (
     SELECT
         'SRY' AS "Empresa",
@@ -26,7 +26,7 @@
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
         
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -66,7 +66,7 @@ UNION ALL
         INNER JOIN JDT1 ON OJDT."TransId" = JDT1."TransId"
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -106,7 +106,7 @@ UNION ALL
         INNER JOIN JDT1 ON OJDT."TransId" = JDT1."TransId"
         left join OPCH ON ojdt."BaseRef" = opch."DocNum"
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -150,7 +150,7 @@ UNION ALL
         LEFT JOIN OPCH ON OJDT."BaseRef" = OPCH."DocNum"
 
     WHERE 
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 
         -- TransType 18 para solo traer facturas
         AND OJDT."TransType" = '18'
@@ -218,7 +218,7 @@ UNION ALL
         ) AS JDTX
             ON JDTX."TransId" = OJDT."TransId"
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 )
 
 UNION ALL
@@ -312,7 +312,7 @@ UNION ALL
         LEFT JOIN ODPO ON OJDT."BaseRef" = ODPO."DocNum" -- TransType 204, Factura anticipo de proveedores
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 
         -- Excluimos las facturas de proveedor
         AND OJDT."TransType" NOT IN (18, 60)
@@ -355,7 +355,7 @@ UNION ALL
            AND OJDT."TransType" = 60
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
 )
 
 UNION ALL
@@ -394,7 +394,7 @@ UNION ALL
             ON OJDT."BaseRef" = OIGE."DocNum"
 
     WHERE
-        OJDT."RefDate" BETWEEN '2025-01-01' AND '2025-12-31'
+        OJDT."RefDate" BETWEEN '[%0]' AND '[%1]'
         AND OJDT."TransType" = 60
         AND JDT1."Credit" <> 0
 )
